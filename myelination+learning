@@ -1,0 +1,146 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+# -------------------------
+# PARAMETERS
+# -------------------------
+N = 200
+T = 120
+p_connect = 0.05
+
+# 초기 비율: neuron, glia, astro, oligo
+ratio_init = [0.4, 0.3, 0.2, 0.1]
+
+# 역할 인덱스
+NEURON, GLIA, ASTRO, OLIGO = 0, 1, 2, 3
+
+# 기본 결합(게인)
+lambda_base = {
+    NEURON: 1.2,
+    GLIA:   0.8,
+    ASTRO:  1.5,
+    OLIGO:  1.0
+}
+
+# myelination 효과
+myelin_boost = 1.8   # 전도 강화
+delay_factor = 0.5   # 지연 감소 (속도↑)
+
+# learning rate
+eta = 0.01
+
+# -------------------------
+# NETWORK
+# -------------------------
+A = (np.random.rand(N, N) < p_connect).astype(float)
+A = np.triu(A, 1)
+A = A + A.T
+
+# 가중치 행렬 (학습 대상)
+W = A.copy()
+
+# -------------------------
+# SERPENTINE GEOMETRY
+# -------------------------
+t_vals = np.linspace(0, 5*np.pi, N)  # 2.5 turn
+x = t_vals
+y = np.sin(t_vals)
+
+# 곡률 (astro 배치에 영향)
+curv = np.abs(np.gradient(np.gradient(y)))
+
+# -------------------------
+# INITIAL STATE
+# -------------------------
+state = np.random.rand(N)
+roles = np.random.choice([0,1,2,3], size=N, p=ratio_init)
+
+# -------------------------
+# STEP FUNCTION
+# -------------------------
+def step(state, roles, W):
+    lambda_vec = np.array([lambda_base[r] for r in roles])
+
+    # Oligo: myelination boost
+    boost = np.ones(N)
+    boost[roles == OLIGO] = myelin_boost
+
+    # Astro: 곡률 높은 곳에서 게인 증가
+    lambda_vec[roles == ASTRO] *= (1 + 2*curv[roles == ASTRO])
+
+    # 상호작용
+    interaction = W @ (lambda_vec * boost * state)
+
+    # "속도" 효과: 이전 상태 일부 유지 (지연 감소 = 빠른 반응)
+    new_state = np.tanh(interaction * (1/delay_factor) + 0.2*state)
+
+    # -------------------------
+    # LEARNING (Hebbian-like)
+    # -------------------------
+    outer = np.outer(new_state, new_state)
+    W += eta * outer * A  # 연결된 곳만 학습
+
+    # 정규화 (폭주 방지)
+    W[:] = np.clip(W, 0, 2.0)
+
+    # -------------------------
+    # ROLE UPDATE (가소성)
+    # -------------------------
+    activity = np.abs(new_state)
+
+    new_roles = roles.copy()
+    new_roles[activity > 0.75] = NEURON
+    new_roles[(activity <= 0.75) & (activity > 0.45)] = ASTRO
+    new_roles[(activity <= 0.45) & (activity > 0.2)] = OLIGO
+    new_roles[activity <= 0.2] = GLIA
+
+    return new_state, new_roles, W
+
+# -------------------------
+# SIMULATION
+# -------------------------
+history = []
+role_history = []
+
+for t in range(T):
+    state, roles, W = step(state, roles, W)
+    history.append(state.copy())
+    role_history.append(roles.copy())
+
+history = np.array(history)
+role_history = np.array(role_history)
+
+# -------------------------
+# VISUALIZATION (heatmap)
+# -------------------------
+plt.figure(figsize=(8,4))
+plt.imshow(history, aspect='auto')
+plt.title("Activity (with learning + myelination)")
+plt.xlabel("Node")
+plt.ylabel("Time")
+plt.colorbar()
+plt.show()
+
+# -------------------------
+# GIF (serpentine + role color)
+# -------------------------
+fig, ax = plt.subplots()
+
+def color_map(r):
+    if r == NEURON: return "red"
+    if r == GLIA:   return "blue"
+    if r == ASTRO:  return "green"
+    if r == OLIGO:  return "yellow"
+
+def update(frame):
+    ax.clear()
+    roles = role_history[frame]
+    colors = [color_map(r) for r in roles]
+    ax.scatter(x, y, c=colors, s=25)
+    ax.set_title(f"t={frame}")
+    ax.set_xlim(x.min(), x.max())
+    ax.set_ylim(y.min()-1, y.max()+1)
+
+ani = FuncAnimation(fig, update, frames=T)
+ani.save("4type_dynamic.gif", fps=10)
