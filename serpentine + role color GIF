@@ -1,0 +1,36 @@
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+# -------------------------
+# SERPENTINE
+# -------------------------
+t_vals = np.linspace(0, 5*np.pi, N)
+x = t_vals
+y = np.sin(t_vals)
+
+frames = []
+
+for t in range(len(history)):
+    frames.append((history[t], role_history[t]))
+
+fig, ax = plt.subplots()
+
+def update(frame):
+    ax.clear()
+    
+    state, roles = frames[frame]
+    
+    colors = []
+    for r in roles:
+        if r == 0:
+            colors.append("red")
+        elif r == 1:
+            colors.append("blue")
+        else:
+            colors.append("green")
+    
+    ax.scatter(x, y, c=colors, s=20)
+    ax.set_title(f"t={frame}")
+
+ani = FuncAnimation(fig, update, frames=100)
+ani.save("dynamic_roles.gif", fps=10)
