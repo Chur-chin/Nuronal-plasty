@@ -1,0 +1,78 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# -------------------------
+# PARAMETERS
+# -------------------------
+N = 200
+p_connect = 0.05
+
+# 초기 비율 (초기값일 뿐, 이후 바뀜)
+ratio_init = [0.5, 0.3, 0.2]  # neuron, glia, astro
+
+# 역할별 기본 λ
+lambda_base = {
+    0: 1.0,  # neuron
+    1: 2.0,  # glia
+    2: 3.0   # astro
+}
+
+# 역할 이름
+role_names = ["neuron", "glia", "astro"]
+
+# -------------------------
+# NETWORK
+# -------------------------
+A = (np.random.rand(N, N) < p_connect).astype(float)
+A = np.triu(A, 1)
+A = A + A.T
+
+# -------------------------
+# INITIAL STATE
+# -------------------------
+state = np.random.rand(N)
+
+roles = np.random.choice([0,1,2], size=N, p=ratio_init)
+
+# -------------------------
+# STEP FUNCTION
+# -------------------------
+def step(state, roles):
+    lambda_vec = np.array([lambda_base[r] for r in roles])
+    
+    interaction = A @ (lambda_vec * state)
+    new_state = np.tanh(interaction)
+    
+    # 활동도 기준 역할 업데이트
+    activity = np.abs(new_state)
+    
+    new_roles = roles.copy()
+    new_roles[activity > 0.7] = 0   # neuron
+    new_roles[(activity <= 0.7) & (activity > 0.3)] = 2  # astro
+    new_roles[activity <= 0.3] = 1  # glia
+    
+    return new_state, new_roles
+
+# -------------------------
+# SIMULATION
+# -------------------------
+history = []
+role_history = []
+
+for t in range(100):
+    state, roles = step(state, roles)
+    history.append(state.copy())
+    role_history.append(roles.copy())
+
+history = np.array(history)
+role_history = np.array(role_history)
+
+# -------------------------
+# PLOT
+# -------------------------
+plt.imshow(history, aspect='auto')
+plt.title("Dynamic Activity")
+plt.xlabel("Node")
+plt.ylabel("Time")
+plt.colorbar()
+plt.show()
