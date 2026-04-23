@@ -1,0 +1,39 @@
+lambda_vals = np.linspace(1.0, 4.0, 30)
+astro_ratios = np.linspace(0.1, 0.7, 30)
+
+phase = np.zeros((len(lambda_vals), len(astro_ratios)))
+
+for i, lam in enumerate(lambda_vals):
+    for j, r in enumerate(astro_ratios):
+        
+        ratio = [1 - r - 0.3, 0.3, r]
+        if ratio[0] <= 0:
+            continue
+        
+        roles = np.random.choice([0,1,2], size=N, p=ratio)
+        state = np.random.rand(N)
+        
+        lambda_base[2] = lam
+        
+        for _ in range(50):
+            state, roles = step(state, roles)
+        
+        phase[i,j] = np.std(state)
+
+# -------------------------
+# PLOT
+# -------------------------
+plt.imshow(
+    phase,
+    extent=[astro_ratios.min(), astro_ratios.max(),
+            lambda_vals.min(), lambda_vals.max()],
+    origin='lower',
+    aspect='auto'
+)
+
+plt.xlabel("Astro Ratio")
+plt.ylabel("Lambda (Astro)")
+plt.title("Functional Phase Map")
+plt.colorbar(label="Activity Variance")
+plt.savefig("phase_map.png", dpi=300)
+plt.show()
