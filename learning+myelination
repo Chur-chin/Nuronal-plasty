@@ -1,0 +1,56 @@
+import numpy as np
+
+def simulate(N=200, T=120, lam_astro=2.0, eta=0.01, ratio=[0.4,0.3,0.2,0.1]):
+    
+    NEURON, GLIA, ASTRO, OLIGO = 0,1,2,3
+    
+    lambda_base = {
+        NEURON: 1.2,
+        GLIA: 0.8,
+        ASTRO: lam_astro,
+        OLIGO: 1.0
+    }
+    
+    # network
+    A = (np.random.rand(N,N) < 0.05).astype(float)
+    A = np.triu(A,1); A += A.T
+    W = A.copy()
+    
+    # serpentine curvature
+    t_vals = np.linspace(0, 5*np.pi, N)
+    y = np.sin(t_vals)
+    curv = np.abs(np.gradient(np.gradient(y)))
+    
+    state = np.random.rand(N)
+    roles = np.random.choice([0,1,2,3], size=N, p=ratio)
+    
+    history = []
+    
+    for t in range(T):
+        lambda_vec = np.array([lambda_base[r] for r in roles])
+        
+        # astro modulation
+        lambda_vec[roles==ASTRO] *= (1 + 2*curv[roles==ASTRO])
+        
+        # oligo boost
+        boost = np.ones(N)
+        boost[roles==OLIGO] = 1.8
+        
+        interaction = W @ (lambda_vec * boost * state)
+        new_state = np.tanh(interaction + 0.2*state)
+        
+        # learning
+        W += eta * np.outer(new_state, new_state) * A
+        W = np.clip(W, 0, 2.0)
+        
+        # role switching
+        act = np.abs(new_state)
+        roles[act > 0.75] = NEURON
+        roles[(act <= 0.75) & (act > 0.45)] = ASTRO
+        roles[(act <= 0.45) & (act > 0.2)] = OLIGO
+        roles[act <= 0.2] = GLIA
+        
+        state = new_state
+        history.append(state.copy())
+    
+    return np.array(history)
