@@ -1,0 +1,66 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# -------------------------
+# PARAMETERS
+# -------------------------
+N = 200
+ratio_neuron = 0.5
+ratio_glia = 0.3
+ratio_astro = 0.2
+
+lambda_map_values = {
+    "neuron": 1.0,
+    "glia": 2.0,
+    "astro": 3.0
+}
+
+# -------------------------
+# ASSIGN NODE TYPES
+# -------------------------
+types = np.random.choice(
+    ["neuron", "glia", "astro"],
+    size=N,
+    p=[ratio_neuron, ratio_glia, ratio_astro]
+)
+
+# 숫자 배열로 변환 (핵심!)
+lambda_vec = np.array([lambda_map_values[t] for t in types])
+
+# -------------------------
+# NETWORK (random symmetric)
+# -------------------------
+A = (np.random.rand(N, N) < 0.05).astype(float)
+A = np.triu(A, 1)
+A = A + A.T
+
+# -------------------------
+# DYNAMICS (벡터화)
+# -------------------------
+state = np.random.rand(N)
+
+def step(state, A, lambda_vec):
+    interaction = A @ (lambda_vec * state)
+    return np.tanh(interaction)
+
+# -------------------------
+# SIMULATION
+# -------------------------
+history = []
+
+for t in range(100):
+    state = step(state, A, lambda_vec)
+    history.append(state.copy())
+
+history = np.array(history)
+
+# -------------------------
+# VISUALIZATION
+# -------------------------
+plt.figure(figsize=(8,4))
+plt.imshow(history, aspect='auto', cmap='viridis')
+plt.xlabel("Node index")
+plt.ylabel("Time step")
+plt.title("Network Activity Evolution")
+plt.colorbar()
+plt.show()
