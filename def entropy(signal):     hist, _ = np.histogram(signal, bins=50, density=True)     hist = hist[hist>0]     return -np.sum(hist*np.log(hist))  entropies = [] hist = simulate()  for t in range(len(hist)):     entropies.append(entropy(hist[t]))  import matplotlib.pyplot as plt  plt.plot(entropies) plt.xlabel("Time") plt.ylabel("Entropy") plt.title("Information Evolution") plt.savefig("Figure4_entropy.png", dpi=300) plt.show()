@@ -1,0 +1,19 @@
+def entropy(signal):
+    hist, _ = np.histogram(signal, bins=50, density=True)
+    hist = hist[hist>0]
+    return -np.sum(hist*np.log(hist))
+
+entropies = []
+hist = simulate()
+
+for t in range(len(hist)):
+    entropies.append(entropy(hist[t]))
+
+import matplotlib.pyplot as plt
+
+plt.plot(entropies)
+plt.xlabel("Time")
+plt.ylabel("Entropy")
+plt.title("Information Evolution")
+plt.savefig("Figure4_entropy.png", dpi=300)
+plt.show()
