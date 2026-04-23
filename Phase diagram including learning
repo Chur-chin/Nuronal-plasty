@@ -1,0 +1,29 @@
+import matplotlib.pyplot as plt
+
+lambda_vals = np.linspace(1.0, 4.0, 25)
+eta_vals = np.linspace(0.0, 0.05, 25)
+
+phase = np.zeros((len(lambda_vals), len(eta_vals)))
+
+for i, lam in enumerate(lambda_vals):
+    for j, eta in enumerate(eta_vals):
+        
+        hist = simulate(lam_astro=lam, eta=eta)
+        
+        # activity variance = criticality measure
+        phase[i,j] = np.std(hist[-50:])
+
+plt.imshow(
+    phase,
+    extent=[eta_vals.min(), eta_vals.max(),
+            lambda_vals.min(), lambda_vals.max()],
+    origin='lower',
+    aspect='auto'
+)
+
+plt.xlabel("Learning rate (eta)")
+plt.ylabel("Astro coupling (lambda)")
+plt.title("Phase Diagram with Learning")
+plt.colorbar(label="Activity Variance")
+plt.savefig("Figure3_phase_learning.png", dpi=300)
+plt.show()
