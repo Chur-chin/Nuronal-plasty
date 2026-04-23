@@ -1,0 +1,56 @@
+import matplotlib.pyplot as plt
+
+lambda_vals = np.linspace(0.5, 4.0, 30)
+ratio_vals = np.linspace(0.1, 0.8, 30)
+
+phase = np.zeros((len(lambda_vals), len(ratio_vals)))
+
+def measure_activity(state):
+    return np.std(state)
+
+for i, lam in enumerate(lambda_vals):
+    for j, r in enumerate(ratio_vals):
+        # set astro ratio
+        ratio_astro = r
+        ratio_glia = 0.3
+        ratio_neuron = 1 - ratio_astro - ratio_glia
+        
+        if ratio_neuron < 0:
+            continue
+        
+        # initialize
+        types = np.random.choice(
+            ["neuron", "glia", "astro"],
+            size=N,
+            p=[ratio_neuron, ratio_glia, ratio_astro]
+        )
+        
+        lambda_map = {
+            "neuron": 1.0,
+            "glia": 2.0,
+            "astro": lam
+        }
+        
+        state = np.random.rand(N)
+        
+        for _ in range(50):
+            state = step(state)
+        
+        phase[i, j] = measure_activity(state)
+
+# -------------------------
+# PLOT
+# -------------------------
+plt.imshow(
+    phase,
+    extent=[ratio_vals.min(), ratio_vals.max(),
+            lambda_vals.min(), lambda_vals.max()],
+    origin='lower',
+    aspect='auto'
+)
+
+plt.xlabel("Astrocyte Ratio")
+plt.ylabel("Lambda (Astro Strength)")
+plt.title("Phase Diagram")
+plt.colorbar(label="Activity (std)")
+plt.savefig("phase_diagram.png", dpi=300)
