@@ -1,0 +1,9 @@
+hist = simulate()
+
+plt.imshow(hist, aspect='auto')
+plt.xlabel("Node")
+plt.ylabel("Time")
+plt.title("Activity Evolution")
+plt.colorbar()
+plt.savefig("Figure2_activity.png", dpi=300)
+plt.show()
