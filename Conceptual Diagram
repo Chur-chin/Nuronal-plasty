@@ -1,0 +1,8 @@
+t = np.linspace(0, 5*np.pi, 200)
+x = t
+y = np.sin(t)
+
+plt.plot(x,y)
+plt.title("Serpentine Geometry (2.5 turn)")
+plt.savefig("Figure1_geometry.png", dpi=300)
+plt.show()
