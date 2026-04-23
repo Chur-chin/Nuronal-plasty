@@ -1,0 +1,52 @@
+# Neuro-Moiré Adaptive Network
+
+## Overview
+
+This project implements a physics-inspired adaptive network combining:
+
+* Graphene-like conduction (fast transport)
+* hBN-like modulation (barrier / coupling)
+* Dynamic role switching (Neuron / Glia / Astrocyte / Oligodendrocyte)
+* Learning (Hebbian-like)
+* Myelination (speed enhancement)
+
+## Key Idea
+
+Instead of fixed neural roles, **functional states emerge dynamically**:
+
+* Neuron ↔ Glia ↔ Astro ↔ Oligo
+* Controlled by activity, coupling, and learning
+
+## Features
+
+* 2.5 turn serpentine geometry
+* Nonlinear propagation
+* Learning-enabled phase transition
+* Entropy-based information analysis
+
+## Results
+
+* Critical regime emerges at intermediate coupling + learning
+* High-speed pathways form via myelination
+* Information entropy peaks during adaptive phase
+
+## Run
+
+```bash
+pip install -r requirements.txt
+python simulate.py
+python phase_diagram.py
+python entropy.py
+```
+
+## Output
+
+* Activity evolution (Figure 2)
+* Phase diagram with learning (Figure 3)
+* Entropy evolution (Figure 4)
+* Dynamic role GIF
+
+## Concept
+
+This is not a conventional neural network.
+It is a **learning physical system** where computation emerges from nonlinear coupling.
